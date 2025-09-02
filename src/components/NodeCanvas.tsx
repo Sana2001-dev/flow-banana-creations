@@ -129,8 +129,10 @@ export default function NodeCanvas() {
       for (const edge of imageEdges) {
         const sourceNode = nodes.find(n => n.id === edge.source);
         if (sourceNode?.type === 'imageInput') {
-          const nodeImages = nodeData[sourceNode.id]?.images || [];
-          images = [...images, ...nodeImages];
+          const nodeImage = nodeData[sourceNode.id]?.image;
+          if (nodeImage) {
+            images.push(nodeImage);
+          }
         }
       }
 
@@ -224,8 +226,8 @@ export default function NodeCanvas() {
       const data = { ...node.data };
       
       if (node.type === 'imageInput') {
-        data.onImagesChange = (images: string[]) => updateNodeData(node.id, { images });
-        data.images = nodeData[node.id]?.images || [];
+        data.onImageChange = (image: string | null) => updateNodeData(node.id, { image });
+        data.image = nodeData[node.id]?.image || null;
       } else if (node.type === 'prompt') {
         data.onPromptChange = (prompt: string) => updateNodeData(node.id, { prompt });
         data.prompt = nodeData[node.id]?.prompt || node.data.prompt;

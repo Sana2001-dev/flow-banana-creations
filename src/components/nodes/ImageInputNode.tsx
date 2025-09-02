@@ -7,32 +7,29 @@ import { Input } from '@/components/ui/input';
 interface ImageInputNodeProps {
   data: {
     label?: string;
-    images?: string[];
-    onImagesChange?: (images: string[]) => void;
+    image?: string;
+    onImageChange?: (image: string | null) => void;
   };
 }
 
 const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
-  const [images, setImages] = useState<string[]>(data.images || []);
+  const [image, setImage] = useState<string | null>(data.image || null);
   const [dragOver, setDragOver] = useState(false);
 
   const handleFileUpload = useCallback((files: FileList) => {
-    const newImages: string[] = [];
-    
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          if (e.target?.result) {
-            const newImagesList = [...images, ...newImages, e.target.result as string];
-            setImages(newImagesList);
-            data.onImagesChange?.(newImagesList);
-          }
-        };
-        reader.readAsDataURL(file);
-      }
-    });
-  }, [images, data]);
+    const file = files[0]; // Only take the first file
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          const newImage = e.target.result as string;
+          setImage(newImage);
+          data.onImageChange?.(newImage);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  }, [data]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -43,19 +40,17 @@ const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
     }
   }, [handleFileUpload]);
 
-  const removeImage = useCallback((index: number) => {
-    const newImages = images.filter((_, i) => i !== index);
-    setImages(newImages);
-    data.onImagesChange?.(newImages);
-  }, [images, data]);
+  const removeImage = useCallback(() => {
+    setImage(null);
+    data.onImageChange?.(null);
+  }, [data]);
 
   const handleUrlAdd = useCallback((url: string) => {
     if (url && url.startsWith('http')) {
-      const newImages = [...images, url];
-      setImages(newImages);
-      data.onImagesChange?.(newImages);
+      setImage(url);
+      data.onImageChange?.(url);
     }
-  }, [images, data]);
+  }, [data]);
 
   return (
     <div className="bg-gradient-node rounded-lg border border-node-input/20 shadow-node hover:shadow-node-hover transition-all duration-300 min-w-[280px]">
@@ -86,7 +81,6 @@ const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
             </p>
             <input
               type="file"
-              multiple
               accept="image/*"
               onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
               className="hidden"
@@ -116,31 +110,27 @@ const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
           />
         </div>
 
-        {/* Image Preview Grid */}
-        {images.length > 0 && (
-          <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-            {images.map((image, index) => (
-              <div key={index} className="relative group">
-                <img
-                  src={image}
-                  alt={`Input ${index + 1}`}
-                  className="w-full h-20 object-cover rounded border border-border/20"
-                />
-                <Button
-                  variant="destructive"
-                  size="sm"
-                  className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                  onClick={() => removeImage(index)}
-                >
-                  <X className="w-3 h-3" />
-                </Button>
-              </div>
-            ))}
+        {/* Image Preview */}
+        {image && (
+          <div className="relative group">
+            <img
+              src={image}
+              alt="Input image"
+              className="w-full h-32 object-cover rounded border border-border/20"
+            />
+            <Button
+              variant="destructive"
+              size="sm"
+              className="absolute -top-2 -right-2 w-6 h-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+              onClick={removeImage}
+            >
+              <X className="w-3 h-3" />
+            </Button>
           </div>
         )}
 
         <div className="text-xs text-muted-foreground">
-          {images.length} image(s) selected
+          {image ? '1 image selected' : 'No image selected'}
         </div>
       </div>
 
