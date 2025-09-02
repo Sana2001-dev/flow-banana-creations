@@ -230,6 +230,8 @@ export default function NodeCanvas() {
       if (node.type === 'imageInput') {
         data.onImageChange = (image: string | null) => updateNodeData(node.id, { image });
         data.image = nodeData[node.id]?.image || null;
+        // Pass the node ID to the component
+        return { ...node, data, id: node.id };
       } else if (node.type === 'prompt') {
         data.onPromptChange = (prompt: string) => updateNodeData(node.id, { prompt });
         data.prompt = nodeData[node.id]?.prompt || node.data.prompt;
@@ -243,7 +245,10 @@ export default function NodeCanvas() {
   }, [nodes, nodeData, updateNodeData, handleGenerate, isGenerating]);
 
   const addNode = useCallback((type: string) => {
-    const newNodeId = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Generate truly unique ID with timestamp and random string
+    const timestamp = Date.now();
+    const randomStr = Math.random().toString(36).substring(2, 8);
+    const newNodeId = `${type}-${timestamp}-${randomStr}`;
     const position = screenToFlowPosition({ x: 400, y: 300 });
     
     const nodeConfig = {
@@ -260,7 +265,7 @@ export default function NodeCanvas() {
       data: { label: nodeConfig[type as keyof typeof nodeConfig]?.label || 'Node' },
     };
     
-    // Initialize node data for image input nodes
+    // Initialize node data immediately for image input nodes
     if (type === 'imageInput') {
       setNodeData(prev => ({
         ...prev,
@@ -269,6 +274,8 @@ export default function NodeCanvas() {
     }
     
     setNodes((nds) => [...nds, newNode]);
+    
+    console.log(`Added new ${type} node with ID: ${newNodeId}`);
   }, [setNodes, screenToFlowPosition, setNodeData]);
 
   return (

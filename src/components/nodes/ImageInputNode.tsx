@@ -1,10 +1,11 @@
-import { memo, useCallback, useState } from 'react';
+import { memo, useCallback, useState, useEffect } from 'react';
 import { Handle, Position } from '@xyflow/react';
 import { Upload, Image, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 interface ImageInputNodeProps {
+  id: string;
   data: {
     label?: string;
     image?: string;
@@ -12,11 +13,19 @@ interface ImageInputNodeProps {
   };
 }
 
-const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
+const ImageInputNode = memo(({ id, data }: ImageInputNodeProps) => {
   const [image, setImage] = useState<string | null>(data.image || null);
   const [dragOver, setDragOver] = useState(false);
+  
+  // Create unique file input ID for this specific node
+  const fileInputId = `file-upload-${id}`;
 
-  // Sync with external data changes
+  // Sync internal state with external data when it changes
+  useEffect(() => {
+    setImage(data.image || null);
+  }, [data.image]);
+
+  // Handle image change and notify parent
   const handleImageChange = useCallback((newImage: string | null) => {
     setImage(newImage);
     data.onImageChange?.(newImage);
@@ -87,12 +96,12 @@ const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
               accept="image/*"
               onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
               className="hidden"
-              id="file-upload"
+              id={fileInputId}
             />
             <Button
               variant="outline"
               size="sm"
-              onClick={() => document.getElementById('file-upload')?.click()}
+              onClick={() => document.getElementById(fileInputId)?.click()}
             >
               Browse Files
             </Button>
