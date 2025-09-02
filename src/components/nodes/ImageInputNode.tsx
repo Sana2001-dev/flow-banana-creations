@@ -16,6 +16,12 @@ const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
   const [image, setImage] = useState<string | null>(data.image || null);
   const [dragOver, setDragOver] = useState(false);
 
+  // Sync with external data changes
+  const handleImageChange = useCallback((newImage: string | null) => {
+    setImage(newImage);
+    data.onImageChange?.(newImage);
+  }, [data]);
+
   const handleFileUpload = useCallback((files: FileList) => {
     const file = files[0]; // Only take the first file
     if (file && file.type.startsWith('image/')) {
@@ -23,13 +29,12 @@ const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
       reader.onload = (e) => {
         if (e.target?.result) {
           const newImage = e.target.result as string;
-          setImage(newImage);
-          data.onImageChange?.(newImage);
+          handleImageChange(newImage);
         }
       };
       reader.readAsDataURL(file);
     }
-  }, [data]);
+  }, [handleImageChange]);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -41,16 +46,14 @@ const ImageInputNode = memo(({ data }: ImageInputNodeProps) => {
   }, [handleFileUpload]);
 
   const removeImage = useCallback(() => {
-    setImage(null);
-    data.onImageChange?.(null);
-  }, [data]);
+    handleImageChange(null);
+  }, [handleImageChange]);
 
   const handleUrlAdd = useCallback((url: string) => {
     if (url && url.startsWith('http')) {
-      setImage(url);
-      data.onImageChange?.(url);
+      handleImageChange(url);
     }
-  }, [data]);
+  }, [handleImageChange]);
 
   return (
     <div className="bg-gradient-node rounded-lg border border-node-input/20 shadow-node hover:shadow-node-hover transition-all duration-300 min-w-[280px]">

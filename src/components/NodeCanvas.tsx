@@ -33,25 +33,25 @@ const nodeTypes = {
 
 const initialNodes: Node[] = [
   {
-    id: '1',
+    id: 'imageInput-1',
     type: 'imageInput',
     position: { x: 100, y: 100 },
     data: { label: 'Image Input' },
   },
   {
-    id: '2',
+    id: 'prompt-1',
     type: 'prompt',
     position: { x: 100, y: 300 },
     data: { prompt: 'Transform this image with vibrant colors and artistic effects' },
   },
   {
-    id: '3',
+    id: 'generate-1',
     type: 'generate',
     position: { x: 500, y: 200 },
     data: {},
   },
   {
-    id: '4',
+    id: 'output-1',
     type: 'output',
     position: { x: 900, y: 200 },
     data: {},
@@ -61,24 +61,24 @@ const initialNodes: Node[] = [
 const initialEdges: Edge[] = [
   {
     id: 'e1-3',
-    source: '1',
-    target: '3',
+    source: 'imageInput-1',
+    target: 'generate-1',
     targetHandle: 'images',
     animated: true,
     style: { stroke: 'hsl(var(--connection-line))' },
   },
   {
     id: 'e2-3',
-    source: '2',
-    target: '3',
+    source: 'prompt-1',
+    target: 'generate-1',
     targetHandle: 'prompt',
     animated: true,
     style: { stroke: 'hsl(var(--connection-line))' },
   },
   {
     id: 'e3-4',
-    source: '3',
-    target: '4',
+    source: 'generate-1',
+    target: 'output-1',
     animated: true,
     style: { stroke: 'hsl(var(--connection-line))' },
   },
@@ -88,7 +88,9 @@ export default function NodeCanvas() {
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [nodeData, setNodeData] = useState<Record<string, any>>({});
+  const [nodeData, setNodeData] = useState<Record<string, any>>({
+    'imageInput-1': { image: null }
+  });
   const { screenToFlowPosition } = useReactFlow();
 
   const onConnect = useCallback(
@@ -241,7 +243,7 @@ export default function NodeCanvas() {
   }, [nodes, nodeData, updateNodeData, handleGenerate, isGenerating]);
 
   const addNode = useCallback((type: string) => {
-    const newNodeId = `${Date.now()}`;
+    const newNodeId = `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const position = screenToFlowPosition({ x: 400, y: 300 });
     
     const nodeConfig = {
@@ -258,8 +260,16 @@ export default function NodeCanvas() {
       data: { label: nodeConfig[type as keyof typeof nodeConfig]?.label || 'Node' },
     };
     
+    // Initialize node data for image input nodes
+    if (type === 'imageInput') {
+      setNodeData(prev => ({
+        ...prev,
+        [newNodeId]: { image: null }
+      }));
+    }
+    
     setNodes((nds) => [...nds, newNode]);
-  }, [setNodes, screenToFlowPosition]);
+  }, [setNodes, screenToFlowPosition, setNodeData]);
 
   return (
     <div className="w-full h-screen bg-gradient-canvas relative">
