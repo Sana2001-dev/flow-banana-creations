@@ -11,6 +11,7 @@ interface GenerateNodeProps {
     onGenerate?: (apiKey: string) => void;
     isGenerating?: boolean;
     error?: string | null;
+    onDelete?: () => void;
   };
 }
 
@@ -29,7 +30,15 @@ const GenerateNode = memo(({ data }: GenerateNodeProps) => {
   }, [apiKey, data]);
 
   return (
-    <div className="bg-gradient-node rounded-lg border border-node-generate/20 shadow-node hover:shadow-node-hover transition-all duration-300 min-w-[280px]">
+    <div className="bg-gradient-node rounded-lg border border-node-generate/20 shadow-node hover:shadow-node-hover transition-all duration-300 min-w-[280px] relative">
+      {/* Delete Button */}
+      <button
+        onClick={data.onDelete}
+        className="absolute -top-2 -right-2 z-10 w-6 h-6 bg-destructive hover:bg-destructive/90 text-destructive-foreground rounded-full flex items-center justify-center text-xs font-bold transition-all duration-200 hover:scale-110 shadow-md"
+      >
+        ✕
+      </button>
+      
       <div className="flex items-center gap-2 p-3 border-b border-border/10">
         <div className="w-3 h-3 rounded-full bg-node-generate"></div>
         <Zap className="w-4 h-4" />

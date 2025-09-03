@@ -130,6 +130,19 @@ export default function NodeCanvas() {
     }));
   }, []);
 
+  const deleteNode = useCallback((nodeId: string) => {
+    // Remove the node
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId));
+    // Remove all connected edges
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId));
+    // Clean up node data
+    setNodeData(prev => {
+      const newData = { ...prev };
+      delete newData[nodeId];
+      return newData;
+    });
+  }, [setNodes, setEdges, setNodeData]);
+
   const handleGenerate = useCallback(async (apiKey: string) => {
     try {
       setIsGenerating(true);
@@ -248,19 +261,24 @@ export default function NodeCanvas() {
       if (node.type === 'imageInput') {
         data.onImageChange = (image: string | null) => updateNodeData(node.id, { image });
         data.image = nodeData[node.id]?.image || null;
+        data.onDelete = () => deleteNode(node.id);
         // Pass the node ID to the component
         return { ...node, data, id: node.id };
       } else if (node.type === 'prompt') {
         data.onPromptChange = (prompt: string) => updateNodeData(node.id, { prompt });
         data.prompt = nodeData[node.id]?.prompt || node.data.prompt;
+        data.onDelete = () => deleteNode(node.id);
       } else if (node.type === 'generate') {
         data.onGenerate = handleGenerate;
         data.isGenerating = isGenerating;
+        data.onDelete = () => deleteNode(node.id);
+      } else if (node.type === 'output') {
+        data.onDelete = () => deleteNode(node.id);
       }
       
       return { ...node, data };
     });
-  }, [nodes, nodeData, updateNodeData, handleGenerate, isGenerating]);
+  }, [nodes, nodeData, updateNodeData, handleGenerate, isGenerating, deleteNode]);
 
   const addNode = useCallback((type: string) => {
     // Generate truly unique ID with timestamp and random string
