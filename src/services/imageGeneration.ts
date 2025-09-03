@@ -4,6 +4,7 @@ export interface GenerateImageParams {
   prompt: string;
   imageUrls: string[];
   apiKey: string;
+  consistencyKey?: string; // optional deterministic key to keep subject identity
 }
 
 export interface GeneratedImageResponse {
@@ -15,7 +16,7 @@ export class ImageGenerationService {
   private static readonly MODEL = 'google/gemini-2.5-flash-image-preview:free';
 
   static async generateImage(params: GenerateImageParams): Promise<GeneratedImageResponse> {
-    const { prompt, imageUrls, apiKey } = params;
+    const { prompt, imageUrls, apiKey, consistencyKey } = params;
 
     if (!apiKey.trim()) {
       throw new Error('API key is required');
@@ -48,15 +49,22 @@ export class ImageGenerationService {
         }
       ];
 
+      const keyBase = (consistencyKey && consistencyKey.trim()) || imageUrls.join('|') || prompt;
+      const seed = Array.from(keyBase).reduce((acc, ch) => ((acc << 5) - acc + ch.charCodeAt(0)) | 0, 0) >>> 0;
+
       const payload = {
         model: this.MODEL,
         messages,
         modalities: ['image', 'text'],
         stream: false,
+        temperature: 0.2,
+        top_p: 0.9,
         max_tokens: 4096,
+        max_output_tokens: 4096,
         generation_config: {
           size: "1024x1024",
-          quality: "high"
+          quality: "high",
+          seed
         }
       };
 
@@ -71,7 +79,9 @@ export class ImageGenerationService {
         model: payload.model,
         messageCount: messages.length,
         imageCount: imageUrls.length,
-        promptLength: prompt.length
+        promptLength: prompt.length,
+        seed,
+        temperature: 0.2
       });
 
       const response = await axios.post(this.API_URL, payload, { headers });
