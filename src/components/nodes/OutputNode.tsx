@@ -26,7 +26,7 @@ const OutputNode = memo(({ data }: OutputNodeProps) => {
   };
 
   return (
-    <div className="bg-card/90 backdrop-blur-sm rounded-lg border border-node-output/20 shadow-node hover:shadow-node-hover transition-all duration-300 min-w-[280px] relative">
+    <div className="bg-card rounded-lg border border-node-output/20 shadow-node hover:shadow-node-hover transition-all duration-300 min-w-[280px] relative">
       {/* Delete Button */}
       <button
         onClick={data.onDelete}
