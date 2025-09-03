@@ -47,7 +47,7 @@ const OutputNode = memo(({ data }: OutputNodeProps) => {
               <img
                 src={images[selectedImageIndex]}
                 alt={`Generated ${selectedImageIndex + 1}`}
-                className="w-full h-48 object-cover rounded-lg border border-border/20"
+                className="w-full h-auto rounded-lg border border-border/20"
               />
               
               {/* Image Controls Overlay */}
@@ -59,11 +59,11 @@ const OutputNode = memo(({ data }: OutputNodeProps) => {
                         <Maximize2 className="w-4 h-4" />
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl">
+                    <DialogContent className="max-w-none w-auto h-auto">
                       <img
                         src={images[selectedImageIndex]}
                         alt={`Generated ${selectedImageIndex + 1}`}
-                        className="w-full h-auto rounded-lg"
+                        className="max-w-none max-h-[90vh] w-auto h-auto rounded-lg"
                       />
                     </DialogContent>
                   </Dialog>

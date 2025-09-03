@@ -26,28 +26,38 @@ export class ImageGenerationService {
     }
 
     try {
-      const messages = [{
-        role: 'user' as const,
-        content: [
-          // Add image URLs first
-          ...imageUrls.map(url => ({
-            type: 'image_url' as const,
-            image_url: { url }
-          })),
-          // Then add the text prompt
-          { 
-            type: 'text' as const, 
-            text: prompt 
-          }
-        ]
-      }];
+      const messages = [
+        {
+          role: 'system' as const,
+          content: 'Ensure that all generated images keep characters, objects, and visual styles consistent unless explicitly instructed otherwise. Maintain the same subject identity across multiple generations including face, hairstyle, clothes, body shape, and accessories.'
+        },
+        {
+          role: 'user' as const,
+          content: [
+            // Add image URLs first
+            ...imageUrls.map(url => ({
+              type: 'image_url' as const,
+              image_url: { url }
+            })),
+            // Then add the text prompt
+            { 
+              type: 'text' as const, 
+              text: prompt 
+            }
+          ]
+        }
+      ];
 
       const payload = {
         model: this.MODEL,
         messages,
         modalities: ['image', 'text'],
         stream: false,
-        max_tokens: 1000
+        max_tokens: 4096,
+        generation_config: {
+          size: "1024x1024",
+          quality: "high"
+        }
       };
 
       const headers = {
