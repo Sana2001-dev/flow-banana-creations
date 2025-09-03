@@ -93,6 +93,24 @@ export default function NodeCanvas() {
   });
   const { screenToFlowPosition } = useReactFlow();
 
+  // Define valid connections between node types
+  const isValidConnection = useCallback((connection: Connection) => {
+    const sourceNode = nodes.find(node => node.id === connection.source);
+    const targetNode = nodes.find(node => node.id === connection.target);
+    
+    if (!sourceNode || !targetNode) return false;
+    
+    // Define connection rules
+    const validConnections: Record<string, string[]> = {
+      imageInput: ['generate'], // ImageInputNode can only connect to GenerateNode
+      prompt: ['generate'],     // PromptNode can only connect to GenerateNode
+      generate: ['output'],     // GenerateNode can only connect to OutputNode
+      output: []                // OutputNode cannot connect to anything
+    };
+    
+    return validConnections[sourceNode.type]?.includes(targetNode.type) || false;
+  }, [nodes]);
+
   const onConnect = useCallback(
     (params: Edge | Connection) => {
       const edge = {
@@ -327,6 +345,7 @@ export default function NodeCanvas() {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onConnect={onConnect}
+        isValidConnection={isValidConnection}
         nodeTypes={nodeTypes}
         connectionMode={ConnectionMode.Loose}
         fitView
